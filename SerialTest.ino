@@ -6,12 +6,27 @@ int TACHO_PIN1=4;
 int OUTPWM_PIN2=14;
 int TACHO_PIN2=12;
 
-int tacho_value1;
+unsigned long tacho_value1;
 int pwm_value1;
-int tacho_value2;
+unsigned long tacho_value2;
 int pwm_value2;
 
 int x;
+
+/**
+ * @param duration high cycle in microseconds
+ */
+float convertDelay2rpm(unsigned long duration) {
+  /* Found at: http://www.energyscienceforum.com/showthread.php?t=905 */
+  if(duration > 5000) // duration of 5000 micro seconds limits speed to 3000 RPM. This stops erroneous data caused by transient spikes
+  {
+   return (15000000.0/duration); // (1000000uS * 1/4 * 60s) / duration = 15000000.0 / duration keeps calculation simple
+  }
+  else
+  {
+    return 0.0f;
+  }
+}
 
 void statusPrintln() {
   Serial.print("Tacho1 on GPIO");
@@ -76,9 +91,13 @@ void loop() {
 
     Serial.print("Input pwm1: ");
     Serial.print(tacho_value1, DEC);
-    Serial.print("  Input pwm2: ");
+    Serial.print(" ");
+    Serial.print(convertDelay2rpm(tacho_value1));
+    Serial.print("rpm  Input pwm2: ");
     Serial.print(tacho_value2, DEC);
-    Serial.print("  Output pwm1: ");
+    Serial.print(" ");
+    Serial.print(convertDelay2rpm(tacho_value2));
+    Serial.print("rpm  Output pwm1: ");
     Serial.print(pwm_value1, DEC);
     Serial.print("  Output pwm2: ");
     Serial.print(pwm_value2, DEC);
