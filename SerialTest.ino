@@ -1,52 +1,87 @@
 
-int outpwm_pin=5;
-int TACHO_PIN=4;
+#define FAN2_PWM_OFFSET 2000
 
-int tacho_value;
-int pwm_value;
+int OUTPWM_PIN1=5;
+int TACHO_PIN1=4;
+int OUTPWM_PIN2=14;
+int TACHO_PIN2=12;
+
+int tacho_value1;
+int pwm_value1;
+int tacho_value2;
+int pwm_value2;
+
 int x;
-String str;
+
+void statusPrintln() {
+  Serial.print("Tacho1 on GPIO");
+  Serial.println(TACHO_PIN1);
+  Serial.print("Tacho2 on GPIO");
+  Serial.println(TACHO_PIN2);
+  Serial.print("PWM1 on GPIO");
+  Serial.println(OUTPWM_PIN1);
+  Serial.print("PWM2 on GPIO");
+  Serial.println(OUTPWM_PIN2);
+}
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
   analogWriteFreq(25000); // Set frequency to 25KHz
   Serial.write("PWM Test Up and running\n");
-  Serial.print("Tacho on GPIO");
-  Serial.println(TACHO_PIN);
-  Serial.print("PWM on GPIO");
-  Serial.println(outpwm_pin);
+  statusPrintln();
   
   Serial.setTimeout(3000);
-  pinMode(TACHO_PIN, INPUT);
+  pinMode(TACHO_PIN1, INPUT);
+  pinMode(TACHO_PIN2, INPUT);
 }
+
 
 void loop() {
   // put your main code here, to run repeatedly:
   
-  tacho_value = pulseIn(TACHO_PIN, HIGH);
+  tacho_value1 = pulseIn(TACHO_PIN1, HIGH);
+  tacho_value2 = pulseIn(TACHO_PIN2, HIGH);
   
     if(Serial.available() > 0)
     {
         x = Serial.parseInt();
 
-        if (x > 0 && x <= 1024) {
-          if (x == 1024) {
-             x=0;
-             //TODO PWM is disabled with zero -> set output to zero?
-             //digitalWrite(outpwm_pin, LOW);
+        if (x < FAN2_PWM_OFFSET) {
+          // FAN 1 
+          if (x > 0 && x <= 1024) {
+            if (x == 1024) {
+               x=0;
+               //TODO PWM is disabled with zero -> set output to zero?
+               //digitalWrite(outpwm_pin, LOW);
+            }
+            
+            pwm_value1=x;
+            analogWrite(OUTPWM_PIN1, pwm_value1);
+            Serial.print("Updated pwm1 to : ");
+            Serial.println(x, DEC);  // print as an ASCII-encoded decimal
           }
-          pwm_value=x;
-          analogWrite(outpwm_pin, pwm_value);
-          Serial.print("Updated pwm to : ");
-          Serial.println(x, DEC);  // print as an ASCII-encoded decimal
+        } else {
+            // FAN 2
+            x = x - FAN2_PWM_OFFSET;
+            if (x >= 0 && x <= 1024) {
+            pwm_value2=x;
+            analogWrite(OUTPWM_PIN2, pwm_value2);
+            Serial.print("Updated pwm2 to : ");
+            Serial.println(x, DEC);  // print as an ASCII-encoded decimal
+          }
         }
+
     }
 
-    Serial.print("Input pwm: ");
-    Serial.print(tacho_value, DEC);
-    Serial.print("  Output pwm: ");
-    Serial.print(pwm_value, DEC);
+    Serial.print("Input pwm1: ");
+    Serial.print(tacho_value1, DEC);
+    Serial.print("  Input pwm2: ");
+    Serial.print(tacho_value2, DEC);
+    Serial.print("  Output pwm1: ");
+    Serial.print(pwm_value1, DEC);
+    Serial.print("  Output pwm2: ");
+    Serial.print(pwm_value2, DEC);
     Serial.println("  ");
     
     // delay 50 milliseconds before the next reading:
