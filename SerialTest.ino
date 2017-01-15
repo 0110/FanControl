@@ -37,6 +37,7 @@ void statusPrintln() {
   Serial.println(OUTPWM_PIN1);
   Serial.print("PWM2 on GPIO");
   Serial.println(OUTPWM_PIN2);
+  Serial.println("\nCommands\n 1-1024: Sets PWM1 (1: slow, 1023: full speed, 1024: off)\n 2000-3023 Sets PWM2 (2000: off, 2023: fullspeed)\n");
 }
 
 void setup() {
@@ -61,8 +62,9 @@ void loop() {
     if(Serial.available() > 0)
     {
         x = Serial.parseInt();
-
-        if (x < FAN2_PWM_OFFSET) {
+        if (x == 0) {
+          statusPrintln();
+        } else if (x < FAN2_PWM_OFFSET) {
           // FAN 1 
           if (x > 0 && x <= 1024) {
             if (x == 1024) {
